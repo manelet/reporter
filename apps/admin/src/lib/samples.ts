@@ -1,7 +1,7 @@
 import type { NotificationTemplate } from "@reporter/shared";
 
 export const providerEventTypes: Record<string, string[]> = {
-  github: ["push", "pull_request", "issues", "workflow_run"],
+  github: ["push", "pull_request", "issues", "workflow_run", "deployment_status"],
   mixpanel: ["alert", "custom-alert"],
 };
 
@@ -10,6 +10,7 @@ export const providerEventActions: Record<string, Record<string, string[]>> = {
     pull_request: ["opened", "closed", "synchronize", "reopened", "edited"],
     issues: ["opened", "closed", "reopened", "labeled", "edited"],
     workflow_run: ["requested", "in_progress", "completed"],
+    deployment_status: ["success", "failure", "error", "pending"],
   },
 };
 
@@ -67,6 +68,24 @@ export const samplePayloads: Record<string, Record<string, unknown>> = {
       status: "completed",
       html_url: "https://github.com/acme/app/actions/runs/123",
     },
+  },
+  "github:deployment_status": {
+    deployment_status: {
+      state: "success",
+      description: "Deployment has completed",
+      environment: "Production",
+      target_url: "https://manelet-abc123.vercel.app",
+      log_url: "https://vercel.com/manelet/manelet/abc123",
+      creator: { login: "vercel[bot]" },
+    },
+    deployment: {
+      ref: "main",
+      sha: "abc1234def5678",
+      environment: "Production",
+      creator: { login: "vercel[bot]" },
+    },
+    repository: { name: "manelet", full_name: "manelet/manelet", html_url: "https://github.com/manelet/manelet" },
+    sender: { login: "vercel[bot]" },
   },
   "mixpanel:alert": {
     alert_name: "Daily Active Users Drop",
@@ -140,6 +159,21 @@ export const defaultTemplates: Record<string, Record<string, NotificationTemplat
         { key: "Status", value: "{{workflow_run.status}}" },
       ],
       links: [{ label: "View run", url: "{{workflow_run.html_url}}" }],
+    },
+    deployment_status: {
+      title: "Deploy {{deployment_status.state}}: {{repository.name}} ({{deployment.environment}})",
+      body: "{{deployment_status.description}}",
+      level: "{{deployment_status.state}}",
+      metadata: [
+        { key: "Environment", value: "{{deployment.environment}}" },
+        { key: "Ref", value: "{{deployment.ref}}" },
+        { key: "Commit", value: "{{deployment.sha}}" },
+        { key: "By", value: "{{deployment.creator.login}}" },
+      ],
+      links: [
+        { label: "Open deployment", url: "{{deployment_status.target_url}}" },
+        { label: "Logs", url: "{{deployment_status.log_url}}" },
+      ],
     },
   },
   mixpanel: {

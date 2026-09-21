@@ -18,6 +18,17 @@ function interpolateString(template: string, data: unknown): string {
   });
 }
 
+const LEVEL_ALIASES: Record<string, string> = {
+  failure: "error",
+  pending: "info",
+  in_progress: "info",
+  queued: "info",
+};
+
+function normalizeLevel(level: string): string {
+  return LEVEL_ALIASES[level] ?? level;
+}
+
 export function applyTemplate(
   template: NotificationTemplate,
   payload: unknown,
@@ -31,7 +42,7 @@ export function applyTemplate(
   }
 
   if (template.level) {
-    const level = interpolateString(template.level, payload);
+    const level = normalizeLevel(interpolateString(template.level, payload));
     if (["info", "warn", "error", "success"].includes(level)) {
       notification.level = level as Notification["level"];
     }

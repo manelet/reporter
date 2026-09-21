@@ -58,6 +58,22 @@ export const defaultTemplates: Record<string, NotificationTemplate> = {
     ],
     links: [{ label: "View run", url: "{{workflow_run.html_url}}" }],
   },
+
+  deployment_status: {
+    title: "Deploy {{deployment_status.state}}: {{repository.name}} ({{deployment.environment}})",
+    body: "{{deployment_status.description}}",
+    level: "{{deployment_status.state}}",
+    metadata: [
+      { key: "Environment", value: "{{deployment.environment}}" },
+      { key: "Ref", value: "{{deployment.ref}}" },
+      { key: "Commit", value: "{{deployment.sha}}" },
+      { key: "By", value: "{{deployment.creator.login}}" },
+    ],
+    links: [
+      { label: "Open deployment", url: "{{deployment_status.target_url}}" },
+      { label: "Logs", url: "{{deployment_status.log_url}}" },
+    ],
+  },
 };
 
 function verifySignature(
@@ -80,6 +96,15 @@ export const githubProvider: Provider = {
 
   getEventType(headers) {
     return headers["x-github-event"] ?? null;
+  },
+
+  getAction(eventType, body) {
+    const b = body as Record<string, unknown> | null;
+    if (eventType === "deployment_status") {
+      const state = (b?.deployment_status as Record<string, unknown> | undefined)?.state;
+      return typeof state === "string" ? state : undefined;
+    }
+    return typeof b?.action === "string" ? b.action : undefined;
   },
 
   verify(rawBody, secret, headers) {
