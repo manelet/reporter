@@ -13,6 +13,8 @@ export interface Provider {
     secret: string | null,
     headers: Record<string, string | undefined>,
   ): boolean;
+  /** Value the integration filters match against. Defaults to `body.action`. */
+  getAction?(eventType: string, body: unknown): string | undefined;
   defaultTemplates: Record<string, NotificationTemplate>;
 }
 

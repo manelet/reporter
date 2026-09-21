@@ -143,6 +143,19 @@ Admin-only CRUD for bearer tokens.
 - `POST /:id/revoke` — revoke
 - `DELETE /:id` — delete
 
+## Integrations (webhooks)
+
+Create an integration in the admin (**Integrations** page) and point the provider's webhook at `POST /api/webhook/:integrationId`.
+
+### Vercel deploy notifications (Hobby plan)
+
+Vercel account webhooks require a Pro/Enterprise plan. On Hobby, the Vercel GitHub app publishes a `deployment_status` event to the repository instead, so use the **GitHub** provider:
+
+1. Admin → Integrations → New. Provider **GitHub**, channel **Telegram**. Under `deployment_status`, filter by `success` and `failure`/`error` to skip `pending`.
+2. GitHub repo → Settings → Webhooks → Add webhook. Payload URL `https://<api-host>/api/webhook/<integrationId>`, content type `application/json`, secret = the integration secret, events: **Deployment statuses** only.
+
+Levels map automatically: `success` → ✅, `failure`/`error` → ❌, `pending` → ℹ️.
+
 ## Channel configuration
 
 Channels are configured via environment variables. Leave empty to disable a channel.
